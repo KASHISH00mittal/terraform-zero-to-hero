@@ -3,19 +3,23 @@ provider "aws" {
   region = "us-east-1"  # Replace with your desired AWS region.
 }
 
+#Define the VPC variable
 variable "cidr" {
   default = "10.0.0.0/16"
 }
 
+#Define key-value pair for public key
 resource "aws_key_pair" "example" {
   key_name   = "terraform-demo-abhi"  # Replace with your desired key name
   public_key = file("~/.ssh/id_rsa.pub")  # Replace with the path to your public key file
 }
 
+#Define the VPC
 resource "aws_vpc" "myvpc" {
   cidr_block = var.cidr
 }
 
+#Define Subnet
 resource "aws_subnet" "sub1" {
   vpc_id                  = aws_vpc.myvpc.id
   cidr_block              = "10.0.0.0/24"
@@ -23,10 +27,12 @@ resource "aws_subnet" "sub1" {
   map_public_ip_on_launch = true
 }
 
+#Define Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.myvpc.id
 }
 
+#Define route table
 resource "aws_route_table" "RT" {
   vpc_id = aws_vpc.myvpc.id
 
@@ -36,11 +42,13 @@ resource "aws_route_table" "RT" {
   }
 }
 
+#Associate RT
 resource "aws_route_table_association" "rta1" {
   subnet_id      = aws_subnet.sub1.id
   route_table_id = aws_route_table.RT.id
 }
 
+#Define Security group
 resource "aws_security_group" "webSg" {
   name   = "web"
   vpc_id = aws_vpc.myvpc.id
@@ -72,6 +80,7 @@ resource "aws_security_group" "webSg" {
   }
 }
 
+#Define EC2 and define the provisioner to deploy the app 
 resource "aws_instance" "server" {
   ami                    = "ami-0261755bbcb8c4a84"
   instance_type          = "t2.micro"
